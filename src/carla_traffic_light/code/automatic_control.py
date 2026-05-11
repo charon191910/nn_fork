@@ -10,16 +10,22 @@
 # -*- coding: utf-8 -*-
 from __future__ import print_function
 
+import sys
+import os
+
+# 添加 CARLA PythonAPI 路径
+import sys
+import os
+sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..', '..', '..', 'CARLA_0.9.15', 'WindowsNoEditor', 'PythonAPI', 'carla'))
+
 import argparse
 import collections
 import datetime
 import glob
 import logging
 import math
-import os
 import random
 import re
-import sys
 import weakref
 
 try:
@@ -59,7 +65,7 @@ import carla
 from carla import ColorConverter as cc
 
 from agents.navigation.behavior_agent import BehaviorAgent  # pylint: disable=import-error
-from agents.navigation.roaming_agent import RoamingAgent  # pylint: disable=import-error
+#from agents.navigation.roaming_agent import RoamingAgent  # pylint: disable=import-error
 from agents.navigation.basic_agent import BasicAgent  # pylint: disable=import-error
 
 
@@ -200,7 +206,9 @@ class World(object):
 
 class KeyboardControl(object):
     def __init__(self, world):
+        self.world = world
         world.hud.notification("Press 'H' or '?' for help.", seconds=4.0)
+
 
     def parse_events(self):
         for event in pygame.event.get():
@@ -209,6 +217,13 @@ class KeyboardControl(object):
             if event.type == pygame.KEYUP:
                 if self._is_quit_shortcut(event.key):
                     return True
+                elif event.key == pygame.K_c:
+                    # 切换摄像头视角
+                    self.world.camera_manager.toggle_camera()
+                    self.world.hud.notification("Camera angle changed", seconds=1.0)
+                elif event.key == pygame.K_h:
+                    # 显示帮助
+                    self.world.hud.help.toggle()
 
     @staticmethod
     def _is_quit_shortcut(key):
@@ -411,9 +426,23 @@ class HelpText(object):
 
     def __init__(self, font, width, height):
         """Constructor method"""
-        lines = __doc__.split('\n')
+        lines = [
+            "=== CARLA Help ===",
+            "",
+            "C        - Switch Camera View",
+            "H        - Show/Hide Help",
+            "Ctrl+Q   - Quit",
+            "ESC      - Quit",
+            "",
+            "--agent Basic      - Basic Mode",
+            "--agent Behavior   - Behavior Mode (Traffic Light)",
+            "--loop             - Loop Mode",
+            "--behavior normal  - Driving Style (normal/cautious/aggressive)",
+            "",
+            "Traffic Light: Behavior Agent mode only",
+        ]
         self.font = font
-        self.dim = (680, len(lines) * 22 + 12)
+        self.dim = (900, len(lines) * 22 + 12)
         self.pos = (0.5 * width - 0.5 * self.dim[0], 0.5 * height - 0.5 * self.dim[1])
         self.seconds_left = 0
         self.surface = pygame.Surface(self.dim)
@@ -692,9 +721,7 @@ def game_loop(args):
         elif args.agent == "Basic":
             agent = BasicAgent(world.player)
             spawn_point = world.map.get_spawn_points()[0]
-            agent.set_destination((spawn_point.location.x,
-                                   spawn_point.location.y,
-                                   spawn_point.location.z))
+            agent.set_destination(spawn_point.location)
         else:
             agent = BehaviorAgent(world.player, behavior=args.behavior)
 
