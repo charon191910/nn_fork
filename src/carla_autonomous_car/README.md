@@ -1,8 +1,14 @@
 # CARLA Frenet轨迹规划 - 自动驾驶强化学习系统
 
-## 项目概述
+## 📋 项目概述
 
-本项目实现了一个基于强化学习的Frenet坐标系轨迹规划系统，用于CARLA模拟器中的自动驾驶车辆。系统采用PPO2（近端策略优化）算法结合LSTM网络，学习复杂交通场景下的最优驾驶策略。
+本项目实现了一个完整的自动驾驶强化学习系统，专注于Frenet坐标系下的最优轨迹规划。系统集成了多种强化学习算法（PPO2、A2C、DDPG、TRPO），结合Lyapunov稳定性理论，为CARLA模拟器提供安全、高效的自动驾驶解决方案。
+
+**核心创新点：**
+- 基于Frenet坐标系的轨迹规划，实现平滑的车道保持和变道决策
+- Lyapunov稳定性理论保证，提供形式化的安全性和收敛性保证
+- 多算法支持与对比，包括PPO2、A2C、DDPG、TRPO等主流强化学习算法
+- 完整的实验分析系统，支持自动化测试和可视化分析
 
 ## 核心特性
 
@@ -12,16 +18,36 @@
 - **多实验配置**：支持基础、改进和Lyapunov稳定性三种实验配置
 - **CARLA集成**：与CARLA模拟器深度集成，提供真实仿真环境
 
-## 系统架构
+## 🏗️ 系统架构
 
 ```
 carla_autonomous_car/
 ├── main.py                           # 主程序入口
 ├── config.py                         # 配置管理模块
-├── agents/reinforcement_learning/    # 强化学习算法（stable_baselines）
-├── carla_gym/envs/                   # CARLA环境接口
+├── agents/                           # 强化学习代理
+│   ├── reinforcement_learning/      # 稳定强化学习算法
+│   │   ├── ppo2/                     # PPO2算法实现
+│   │   ├── a2c/                      # A2C算法实现
+│   │   ├── ddpg/                     # DDPG算法实现
+│   │   └── trpo_mpi/                 # TRPO算法实现
+│   └── tools/                        # 工具函数
+├── carla_gym/                        # CARLA环境接口
+│   └── envs/carla_env_v1.py          # 增强CARLA环境
 ├── configs/                          # 实验配置文件
-└── logs/                             # 训练和测试日志
+├── experiments/                      # 实验分析系统
+│   ├── baseline_comparison.py        # 多算法对比可视化
+│   ├── theoretical_verification.py   # Lyapunov理论验证
+│   └── scripts/                      # 分析脚本
+│       ├── analyze_results.py        # 统计分析工具
+│       ├── plot_results.py           # 专业图表生成
+│       └── run_experiments.py        # 实验自动化
+├── theory/                           # 理论基础
+│   ├── lyapunov_shaping.py           # Lyapunov势能塑形
+│   ├── safety_barriers.py            # 安全屏障理论
+│   └── dynamics_models.py            # 车辆动力学模型
+└── tools/                            # 实用工具
+    ├── modules.py                    # 模块管理系统
+    └── reward_shaping.py             # 奖励塑形工具
 ```
 
 ## 安装指南
