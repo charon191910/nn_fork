@@ -168,7 +168,7 @@ python experiments/theoretical_verification.py
 
 ## 🎯 配置详解
 
-### 配置文件格式
+### 配置文件结构
 
 所有配置文件位于 `configs/` 目录，使用YAML格式：
 
@@ -186,6 +186,7 @@ rl_params:
   learning_rate: 0.00025
   n_steps: 128
   batch_size: 256
+  gamma: 0.99  # 折扣因子
   
 reward_params:
   speed_reward: 1.0
@@ -273,9 +274,15 @@ r_safety = -γ * collision_penalty if collision
 ```
 r_lane = δ * (1 - lane_offset / lane_width)
 ```
+<<<<<<< HEAD
 - δ：车道保持奖励权重（默认：0.5）
 - lane_offset：车辆偏离车道中心的距离（m）
 - lane_width：车道宽度（默认：3.7m）
+=======
+- δ：车道保持奖励权重
+- lane_offset：车辆偏离车道中心的距离
+- lane_width：车道宽度
+>>>>>>> b0d15181ee03540a639fc7d760b1ba55e0883614
 
 ### 高级奖励组件
 
@@ -283,25 +290,43 @@ r_lane = δ * (1 - lane_offset / lane_width)
 ```
 r_comfort = -ε * (acceleration^2 + jerk^2)
 ```
+<<<<<<< HEAD
 - ε：舒适性惩罚权重（默认：0.1）
 - acceleration：加速度（m/s²）
 - jerk：加加速度（加速度变化率，m/s³）
+=======
+- ε：舒适性惩罚权重
+- acceleration：加速度
+- jerk：加加速度（加速度变化率）
+>>>>>>> b0d15181ee03540a639fc7d760b1ba55e0883614
 
 **效率奖励（`r_efficiency`）**
 ```
 r_efficiency = ζ * progress / total_distance
 ```
+<<<<<<< HEAD
 - ζ：效率奖励权重（默认：0.1）
 - progress：沿轨迹的前进距离（m）
 - total_distance：总轨迹长度（m）
+=======
+- ζ：效率奖励权重
+- progress：沿轨迹的前进距离
+- total_distance：总轨迹长度
+>>>>>>> b0d15181ee03540a639fc7d760b1ba55e0883614
 
 **变道塑形奖励（`r_lane_change`）**
 ```
 r_lane_change = η * (lane_change_success * 1.0 + smooth_lane_change * 0.5)
 ```
+<<<<<<< HEAD
 - η：变道奖励权重（基础：0.0，改进：0.5，Lyapunov：1.0）
 - lane_change_success：变道成功标志（0或1）
 - smooth_lane_change：平滑变道评分（0.0到1.0）
+=======
+- η：变道奖励权重
+- lane_change_success：变道成功标志
+- smooth_lane_change：平滑变道评分
+>>>>>>> b0d15181ee03540a639fc7d760b1ba55e0883614
 
 ### 综合奖励
 
@@ -315,7 +340,11 @@ r_total = r_speed + r_safety + r_lane + r_comfort + r_efficiency + r_lane_change
 | 组件 | 基础配置 | 改进配置 | Lyapunov配置 |
 |------|----------|----------|--------------|
 | 速度奖励 | 1.0 | 1.0 | 1.0 |
+<<<<<<< HEAD
 | 安全奖励 | -50.0 | -50.0 | -100.0 |
+=======
+| 安全奖励 | -100.0 | -100.0 | -150.0 |
+>>>>>>> b0d15181ee03540a639fc7d760b1ba55e0883614
 | 车道保持 | 0.5 | 0.5 | 0.8 |
 | 舒适性 | -0.1 | -0.1 | -0.2 |
 | 效率奖励 | 0.1 | 0.1 | 0.2 |
@@ -324,14 +353,57 @@ r_total = r_speed + r_safety + r_lane + r_comfort + r_efficiency + r_lane_change
 ## 🔬 理论保证
 
 ### Lyapunov稳定性理论
-- **形式化稳定性证明**：数学保证算法收敛性
-- **自适应安全边界**：动态调整安全约束
-- **保守探索策略**：确保训练过程安全
+
+**Lyapunov函数设计：**
+```
+V(s) = s^T * P * s
+```
+其中：
+- `s`：状态向量（车辆位置、速度、方向）
+- `P`：正定矩阵
+- `V(s)`：Lyapunov函数
+
+**稳定性条件：**
+```
+ΔV(s) = V(s_{t+1}) - V(s_t) ≤ 0
+```
+
+**自适应安全边界：**
+```
+safe_boundary = f(v, a_max, ttc_min)
+```
+其中：
+- `v`：当前速度
+- `a_max`：最大加速度
+- `ttc_min`：最小碰撞时间
 
 ### 安全屏障理论
-- **碰撞时间（TTC）监控**：实时预测碰撞风险
-- **最小安全距离强制**：确保安全车距
-- **紧急干预能力**：自动执行紧急制动
+
+**碰撞时间（TTC）计算：**
+```
+TTC = (d_lead - L) / (v_ego - v_lead) if v_ego > v_lead
+TTC = ∞ if v_ego ≤ v_lead
+```
+其中：
+- `d_lead`：与前车的距离
+- `L`：前车长度
+- `v_ego`：自车速度
+- `v_lead`：前车速度
+
+**安全屏障函数：**
+```
+h(s) = TTC - TTC_threshold
+```
+当 `h(s) ≤ 0` 时，触发安全干预。
+
+**紧急制动策略：**
+```
+a_brake = -max_brake * (1 - exp(-k * (TTC_threshold - TTC)))
+```
+其中：
+- `a_brake`：制动加速度
+- `max_brake`：最大制动加速度
+- `k`：制动强度系数
 
 ## 📈 性能指标
 
